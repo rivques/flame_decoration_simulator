@@ -1,9 +1,13 @@
+use std::thread;
+
 pub use app::App;
+use logging::initialize_logging;
 use types::{Simulation, LED};
 
 pub mod app;
 pub mod simulations;
 pub mod types;
+pub mod logging;
 
 const LED_POSITIONS: [(usize, usize); 12] = [
     (103, 4),
@@ -21,6 +25,9 @@ const LED_POSITIONS: [(usize, usize); 12] = [
 ];
 
 fn main() -> color_eyre::Result<()> {
+    initialize_logging()?;
+    thread::sleep(std::time::Duration::from_secs(1));
+    trace_dbg!("Starting up");
     let leds: Vec<_> = LED_POSITIONS
         .iter()
         .map(|(x, y)| LED {
