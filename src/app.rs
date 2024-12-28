@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 /// This is a simulator for my fire decoration PCB. It has a menu to choose a simulation technique and a simulation page to run the simulation.
 /// The simulation page includes accurately laid out pixels simulation the NeoPixels.
@@ -31,6 +31,8 @@ pub struct App {
     simulations: Vec<Box<dyn Simulation>>,
 
     current_leds: Vec<LED>,
+
+    current_brightness_mod: f32,
 }
 
 impl App {
@@ -41,6 +43,7 @@ impl App {
             page: AppPage::Menu(0),
             simulations,
             current_leds: leds,
+            current_brightness_mod: 1.0,
         }
     }
 
@@ -49,6 +52,7 @@ impl App {
         self.running = true;
         while self.running {
             terminal.draw(|frame| self.draw(frame))?;
+            terminal.hide_cursor()?;
             self.handle_crossterm_events()?;
         }
         Ok(())
@@ -131,21 +135,16 @@ impl App {
                     .margin(1)
                     .constraints(
                         [
-                            Constraint::Length(2),
                             Constraint::Min(0),
+                            Constraint::Length(2),
                         ]
                         .as_ref(),
                     )
                     .split(chunks[1]);
                 let simulation = &mut self.simulations[simnum];
-                let simulation_title = Paragraph::new(
-                    Line::raw("Simulation: ".to_owned() + simulation.get_name()).style(Style::new().fg(Color::Green)),
-                ).centered();
-                frame.render_widget(simulation_title, simulation_layout[0]);
                 
                 // tick the simulation
-                simulation.tick(&mut self.current_leds, (Instant::now() - start_time).as_micros().try_into().unwrap(), 1.0);
-                // TODO: allow arrows to change brightness_mod
+                simulation.tick(&mut self.current_leds, (Instant::now() - start_time).as_micros().try_into().unwrap(), self.current_brightness_mod);
 
                 // get bounding box of LEDs
                 let mut min_x = std::i32::MAX;
@@ -171,8 +170,8 @@ impl App {
                 let ideal_aspect_ratio = width as f64 / height as f64;
 
                 // now, the canvas has a fixed aspect ratio, so we need to adjust the aspect ratio of the bounding box by adding padding
-                // the canvas's size is (simulation_layout[1].width, simulation_layout[1].height * 2) because we have twice as much vertical resolution as horizontal
-                let canvas_aspect_ratio = simulation_layout[1].width as f64 / (simulation_layout[1].height * 2) as f64;
+                // the canvas's size is (simulation_layout[0].width, simulation_layout[0].height * 2) because we have twice as much vertical resolution as horizontal
+                let canvas_aspect_ratio = simulation_layout[0].width as f64 / (simulation_layout[0].height * 2) as f64;
                 if canvas_aspect_ratio > ideal_aspect_ratio {
                     // canvas is wider than the bounding box, so we need to add padding to the left 
                     let new_width = (height as f64 * canvas_aspect_ratio) as i32;
@@ -208,10 +207,18 @@ impl App {
                     })
                     .x_bounds([min_x as f64, max_x as f64])
                     .y_bounds([min_y as f64, max_y as f64]);
-                frame.render_widget(canvas, simulation_layout[1]);
+                frame.render_widget(canvas, simulation_layout[0]);
+                // current brightness
+                let brightness = Paragraph::new(
+                    Line::raw("Brightness: ".to_owned() + &format!("{:.1}", self.current_brightness_mod))
+                        .style(Style::new().fg(Color::Green)),
+                )
+                .centered();
+                frame.render_widget(brightness, simulation_layout[1]);
+
                 // status message
                 let status = Paragraph::new(
-                    Line::raw("Back to menu: Esc/q")
+                    Line::raw("Back to menu: Esc/q, Change brightness: ↑/↓")
                         .style(Style::new().fg(Color::Yellow)),
                 )
                 .centered();
@@ -225,12 +232,13 @@ impl App {
     /// If your application needs to perform work in between handling events, you can use the
     /// [`event::poll`] function to check if there are any events available with a timeout.
     fn handle_crossterm_events(&mut self) -> Result<()> {
-        match event::read()? {
-            // it's important to check KeyEventKind::Press to avoid handling key release events
-            Event::Key(key) if key.kind == KeyEventKind::Press => self.on_key_event(key),
-            Event::Mouse(_) => {}
-            Event::Resize(_, _) => {}
-            _ => {}
+        if event::poll(Duration::from_millis(10)).is_ok_and(|ready| ready) {
+            match event::read()? {
+                Event::Key(key) if key.kind == KeyEventKind::Press => self.on_key_event(key),
+                Event::Mouse(_) => {}
+                Event::Resize(_, _) => {}
+                _ => {}
+            }
         }
         Ok(())
     }
@@ -249,7 +257,12 @@ impl App {
                         *simnum -= 1;
                     }
                 }
-                _ => {}
+                AppPage::Simulation(..) => {
+                    self.current_brightness_mod += 0.1;
+                    if self.current_brightness_mod > 1.0 {
+                        self.current_brightness_mod = 1.0;
+                    }
+                }
             },
             (_, KeyCode::Down) => match self.page {
                 AppPage::Menu(ref mut simnum) => {
@@ -257,7 +270,12 @@ impl App {
                         *simnum += 1;
                     }
                 }
-                _ => {}
+                AppPage::Simulation(..) => {
+                    self.current_brightness_mod -= 0.1;
+                    if self.current_brightness_mod < 0.0 {
+                        self.current_brightness_mod = 0.0;
+                    }
+                }
             },
             (_, KeyCode::Enter) => match self.page {
                 AppPage::Menu(simnum) => {
@@ -288,13 +306,15 @@ pub struct FilledCircle {
     pub color: Color,
 }
 
+const RAD_MULT: f64 = 2.0;
+
 impl Shape for FilledCircle {
     fn draw(&self, painter: &mut Painter<'_, '_>) {
         for angle in 0..360 {
-            for dist in 0..=self.radius as i32 {
+            for dist in 0..=(self.radius * RAD_MULT) as i32 {
                 let radians = f64::from(angle).to_radians();
-                let circle_x = (dist as f64).mul_add(radians.cos(), self.x);
-                let circle_y = (dist as f64).mul_add(radians.sin(), self.y);
+                let circle_x = ((dist as f64)/RAD_MULT).mul_add(radians.cos(), self.x);
+                let circle_y = ((dist as f64)/RAD_MULT).mul_add(radians.sin(), self.y);
                 if let Some((x, y)) = painter.get_point(circle_x, circle_y) {
                     painter.paint(x, y, self.color);
                 }

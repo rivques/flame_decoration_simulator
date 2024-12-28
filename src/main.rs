@@ -1,39 +1,35 @@
 pub use app::App;
-use simulations::{AlwaysOnSim, FlashEverySecondSim};
 use types::{Simulation, LED};
 
 pub mod app;
-pub mod types;
 pub mod simulations;
+pub mod types;
 
 const LED_POSITIONS: [(usize, usize); 12] = [
-    (103, 96),
-    (104, 89),
-    (105, 83),
-    (106, 76),
-    (110, 70),
-    (115, 76),
-    (118, 83),
-    (119, 90),
-    (120, 97),
-    (112, 97),
-    (111, 89),
-    (111, 82),
+    (103, 4),
+    (104, 11),
+    (105, 17),
+    (106, 24),
+    (110, 30),
+    (115, 24),
+    (118, 17),
+    (119, 10),
+    (120, 3),
+    (112, 3),
+    (111, 11),
+    (111, 18),
 ];
 
 fn main() -> color_eyre::Result<()> {
-    let mut leds: Vec<_> = LED_POSITIONS
+    let leds: Vec<_> = LED_POSITIONS
         .iter()
         .map(|(x, y)| LED {
             color: types::RGB { r: 0, g: 0, b: 0 },
             coords: (*x, *y),
         })
-        .collect();    
+        .collect();
 
-    let simulations: Vec<Box<dyn Simulation>> = vec![
-        Box::new(AlwaysOnSim::new(&leds)),
-        Box::new(FlashEverySecondSim::new(&leds)),
-    ];
+    let simulations: Vec<Box<dyn Simulation>> = simulations::get_simulations(&leds);
 
     color_eyre::install()?;
     let terminal = ratatui::init();

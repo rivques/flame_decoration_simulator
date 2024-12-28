@@ -1,67 +1,15 @@
 use std::vec;
 
-use crate::types::{Simulation, RGB, LED};
+use crate::types::{Simulation, LED};
 
-#[derive(Debug)]
-pub struct AlwaysOnSim;
+mod always_on_sim;
+mod flash_every_second;
+mod rainbow_flood;
 
-impl Simulation for AlwaysOnSim {
-    fn tick(
-        &mut self,
-        leds: &mut Vec<LED>,
-        micros: u64,
-        brightness_mod: f32,
-    ){
-        let brightness = (255.0 * brightness_mod) as u8;
-        for led in leds.iter_mut() {
-            led.color = RGB { r: brightness, g: brightness, b: brightness };
-        }
-    }
-
-    fn new(leds: &Vec<LED>,) -> Self {
-        Self
-    }
-
-    fn get_name(&self) -> &'static str {
-        "Always on"
-    }
-}
-
-#[derive(Debug)]
-pub struct FlashEverySecondSim {
-    last_flash: u64,
-    on_now: bool,
-}
-
-impl Simulation for FlashEverySecondSim {
-    fn new(leds: &Vec<LED>) -> Self {
-        Self { last_flash: 0, on_now: false }
-    }
-
-    fn get_name(&self) -> &'static str {
-        "Flash every second"
-    }
-
-    fn tick(
-        &mut self,
-        leds: &mut Vec<LED>,
-        micros: u64,
-        brightness_mod: f32,
-    ) {
-        let brightness = (255.0 * brightness_mod) as u8;
-
-        if micros - self.last_flash >= 1_000_000 {
-            self.on_now = !self.on_now;
-            self.last_flash = micros;
-
-            leds.iter_mut().for_each(|led| {
-                led.color = if self.on_now {
-                    RGB { r: brightness, g: brightness, b: brightness }
-                } else {
-                    RGB { r: 0, g: 0, b: 0 }
-                };
-            });
-        }
-    }
-
+pub fn get_simulations(leds: &Vec<LED>) -> Vec<Box<dyn Simulation>> {
+    vec![
+        // Box::new(always_on_sim::AlwaysOnSim::new(leds)), // only used for testing, not useful in prod
+        Box::new(flash_every_second::FlashEverySecondSim::new(leds)),
+        Box::new(rainbow_flood::RainbowFloodSim::new(leds)),
+    ]
 }
