@@ -6,6 +6,7 @@ mod always_on_sim;
 mod flash_every_second;
 mod rainbow_flood;
 mod height_flicker;
+mod candle_colored;
 
 #[must_use] pub fn get_simulations(leds: &[LED]) -> Vec<Box<dyn Simulation>> {
     vec![
@@ -13,5 +14,6 @@ mod height_flicker;
         Box::new(flash_every_second::FlashEverySecondSim::new(leds)),
         Box::new(rainbow_flood::RainbowFloodSim::new(leds)),
         Box::new(height_flicker::HeightFlickerSim::new(leds)),
+        Box::new(candle_colored::CandleColoredSim::new(leds)),
     ]
 }
