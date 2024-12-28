@@ -9,7 +9,7 @@ use ratatui::{
     style::{Color, Style, Stylize},
     symbols::block,
     text::{Line, Text},
-    widgets::{block::title, canvas::{Canvas, Circle}, Block, Borders, Paragraph},
+    widgets::{block::title, canvas::{Canvas, Circle, Painter, Shape}, Block, Borders, Paragraph},
     DefaultTerminal, Frame,
 };
 
@@ -195,7 +195,7 @@ impl App {
                             let x = led.coords.0 as f64;
                             let y = led.coords.1 as f64;
                             let color = led.color;
-                            Circle{
+                            FilledCircle{
                                 x,
                                 y,
                                 radius: 2.0,
@@ -272,5 +272,33 @@ impl App {
     /// Set running to false to quit the application.
     fn quit(&mut self) {
         self.running = false;
+    }
+}
+
+/// A circle with a given center and radius and with a given color
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct FilledCircle {
+    /// `x` coordinate of the circle's center
+    pub x: f64,
+    /// `y` coordinate of the circle's center
+    pub y: f64,
+    /// Radius of the circle
+    pub radius: f64,
+    /// Color of the circle
+    pub color: Color,
+}
+
+impl Shape for FilledCircle {
+    fn draw(&self, painter: &mut Painter<'_, '_>) {
+        for angle in 0..360 {
+            for dist in 0..=self.radius as i32 {
+                let radians = f64::from(angle).to_radians();
+                let circle_x = (dist as f64).mul_add(radians.cos(), self.x);
+                let circle_y = (dist as f64).mul_add(radians.sin(), self.y);
+                if let Some((x, y)) = painter.get_point(circle_x, circle_y) {
+                    painter.paint(x, y, self.color);
+                }
+            }
+        }
     }
 }
