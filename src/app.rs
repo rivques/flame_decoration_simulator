@@ -12,7 +12,7 @@ use ratatui::{
     DefaultTerminal, Frame,
 };
 
-use crate::types::{Simulation, LED};
+use crate::{intro, types::{Simulation, LED}};
 
 #[derive(Debug)]
 enum AppPage {
@@ -93,9 +93,8 @@ impl App {
 
         match self.page {
             AppPage::Intro => {
-                // TODO: break this intro into a constant string and also print it if `app --help` is run
                 let intro = Paragraph::new(Text::styled(
-                    "Welcome to the Fire Decoration Simulator!",
+                    intro::TEXT,
                     Style::new().fg(Color::Green),
                 ))
                 .alignment(Alignment::Center);

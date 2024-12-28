@@ -1,4 +1,4 @@
-use std::thread;
+use std::{env::args, thread};
 
 pub use app::App;
 use logging::initialize_logging;
@@ -8,6 +8,7 @@ pub mod app;
 pub mod simulations;
 pub mod types;
 pub mod logging;
+pub mod intro;
 
 const LED_POSITIONS: [(usize, usize); 12] = [
     (103, 4),
@@ -25,6 +26,10 @@ const LED_POSITIONS: [(usize, usize); 12] = [
 ];
 
 fn main() -> color_eyre::Result<()> {
+    if std::env::args().any(|arg| arg == "--help" || arg == "-h") {
+        println!("{}", intro::TEXT);
+        return Ok(());
+    }
     initialize_logging()?;
     thread::sleep(std::time::Duration::from_secs(1));
     trace_dbg!("Starting up");
