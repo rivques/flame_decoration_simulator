@@ -31,7 +31,7 @@ pub struct App {
 
     current_leds: Vec<LED>,
 
-    current_brightness_mod: f32,
+    current_intensity_mod: f32,
 }
 
 impl App {
@@ -42,7 +42,7 @@ impl App {
             page: AppPage::Menu(0),
             simulations,
             current_leds: leds,
-            current_brightness_mod: 1.0,
+            current_intensity_mod: 1.0,
         }
     }
 
@@ -143,7 +143,7 @@ impl App {
                 let simulation = &mut self.simulations[simnum];
                 
                 // tick the simulation
-                simulation.tick(&mut self.current_leds, start_time.elapsed().as_micros().try_into().unwrap(), self.current_brightness_mod);
+                simulation.tick(&mut self.current_leds, start_time.elapsed().as_micros().try_into().unwrap(), self.current_intensity_mod);
 
                 // get bounding box of LEDs
                 let mut min_x = i32::MAX;
@@ -205,17 +205,17 @@ impl App {
                     .x_bounds([f64::from(min_x), f64::from(max_x)])
                     .y_bounds([f64::from(min_y), f64::from(max_y)]);
                 frame.render_widget(canvas, simulation_layout[0]);
-                // current brightness
-                let brightness = Paragraph::new(
-                    Line::raw("Brightness: ".to_owned() + &format!("{:.1}", self.current_brightness_mod))
+                // current intensity
+                let intensity = Paragraph::new(
+                    Line::raw("Intensity: ".to_owned() + &format!("{:.1}", self.current_intensity_mod))
                         .style(Style::new().fg(Color::Green)),
                 )
                 .centered();
-                frame.render_widget(brightness, simulation_layout[1]);
+                frame.render_widget(intensity, simulation_layout[1]);
 
                 // status message
                 let status = Paragraph::new(
-                    Line::raw("Back to menu: Esc/q, Change brightness: ↑/↓")
+                    Line::raw("Back to menu: Esc/q, Change intensity: ↑/↓")
                         .style(Style::new().fg(Color::Yellow)),
                 )
                 .centered();
@@ -255,9 +255,9 @@ impl App {
                     }
                 }
                 AppPage::Simulation(..) => {
-                    self.current_brightness_mod += 0.1;
-                    if self.current_brightness_mod > 1.0 {
-                        self.current_brightness_mod = 1.0;
+                    self.current_intensity_mod += 0.1;
+                    if self.current_intensity_mod > 1.0 {
+                        self.current_intensity_mod = 1.0;
                     }
                 }
             },
@@ -268,9 +268,9 @@ impl App {
                     }
                 }
                 AppPage::Simulation(..) => {
-                    self.current_brightness_mod -= 0.1;
-                    if self.current_brightness_mod < 0.0 {
-                        self.current_brightness_mod = 0.0;
+                    self.current_intensity_mod -= 0.1;
+                    if self.current_intensity_mod < 0.0 {
+                        self.current_intensity_mod = 0.0;
                     }
                 }
             },

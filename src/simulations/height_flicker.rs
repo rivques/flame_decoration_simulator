@@ -21,10 +21,10 @@ impl Simulation for HeightFlickerSim {
         &mut self,
         leds: &mut Vec<LED>,
         micros: u64,
-        brightness_mod: f32,
+        intensity_mod: f32,
     ) {
         let color = RGB {r: 255f32, g: 30f32, b: 0f32}; // config: the color of the pattern
-        let variance_per_second = (6.0 * brightness_mod) + 0.5; // config: what % of height the pattern can move up or down per second
+        let variance_per_second = (6.0 * intensity_mod) + 0.5; // config: what % of height the pattern can move up or down per second
         let center_bias = 0.2; // config: how much the pattern is biased towards the center
         // TODO: center harder when burning softer
 
@@ -53,8 +53,9 @@ impl Simulation for HeightFlickerSim {
                         1.0 - (distance.abs() / 2.0)
                     }
                 };
-            let log_str = format!("current height: {}, led: {}, distance: {}, brightness: {}", self.current_height, i, distance, brightness);
-            trace_dbg!(log_str);
+            // no need for logging now that we're done with this simulation
+            // let log_str = format!("current height: {}, led: {}, distance: {}, brightness: {}", self.current_height, i, distance, brightness);
+            // trace_dbg!(log_str);
             led.color = RGB {
                 r: (color.r as f32 * brightness) as u8,
                 g: (color.g as f32 * brightness) as u8,

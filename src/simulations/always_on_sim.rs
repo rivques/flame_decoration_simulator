@@ -8,9 +8,9 @@ impl Simulation for AlwaysOnSim {
         &mut self,
         leds: &mut Vec<LED>,
         _micros: u64,
-        brightness_mod: f32,
+        intensity_mod: f32,
     ){
-        let brightness = (255.0 * brightness_mod) as u8;
+        let brightness = (255.0 * intensity_mod) as u8;
         for led in leds.iter_mut() {
             led.color = RGB { r: brightness, g: brightness, b: brightness };
         }

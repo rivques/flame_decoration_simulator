@@ -11,8 +11,8 @@ Coming soon: this project will be usable on Cargo Cult.www
 
 ## Writing a new simulation
 1. Make a new file in `src/simulations/` with the name of your simulation.
-2. Make a struct that implements the `Simulation` trait. `RainbowFlood` is a good example to build off of.
-3. Go to `src/simmulations.rs`.
+2. Make a struct that implements the `Simulation` trait. `HeightFlicker` is a good example to build off of.
+3. Go to `src/simulations.rs`.
 4. Add your simulation to the vec returned by `get_simulations()`.
 
 ## License

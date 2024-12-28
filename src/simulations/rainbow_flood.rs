@@ -43,14 +43,14 @@ impl Simulation for RainbowFloodSim {
     }
 
     fn get_name(&self) -> &'static str { // this is what shows up in the UI
-        "Rainbow flood"
+        "Simulation framework test (not a flame)"
     }
 
     fn tick(
             &mut self,
             leds: &mut Vec<LED>, // the LEDs we're controlling. We can change their colors here
             micros: u64, // the number of microseconds since the program started
-            brightness_mod: f32, // a user-provided value between 0 and 1. should control intensity of the simulation
+            intensity_mod: f32, // a user-provided value between 0 and 1. should control intensity of the simulation
         ) {
             let hue_speed = 120.0; // config: degrees per second to move the rainbow
 
@@ -64,7 +64,7 @@ impl Simulation for RainbowFloodSim {
                 // set each LED as appropriate for its coordinates
                 let y = led.coords.1 as f32;
                 let hue = self.hue + (y / self.pattern_height) * 360.0;
-                led.color = Self::hsv_to_rgb(hue % 360.0, 1.0, brightness_mod);
+                led.color = Self::hsv_to_rgb(hue % 360.0, 1.0, intensity_mod);
             }
     }
 }

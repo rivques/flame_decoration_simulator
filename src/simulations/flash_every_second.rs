@@ -19,9 +19,9 @@ impl Simulation for FlashEverySecondSim {
         &mut self,
         leds: &mut Vec<LED>,
         micros: u64,
-        brightness_mod: f32,
+        intensity_mod: f32,
     ) {
-        let brightness = (255.0 * brightness_mod) as u8;
+        let brightness = (255.0 * intensity_mod) as u8;
 
         if micros - self.last_flash >= 1_000_000 {
             self.on_now = !self.on_now;

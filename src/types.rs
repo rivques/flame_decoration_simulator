@@ -18,7 +18,7 @@ pub trait Simulation: Debug {
         &mut self,
         leds: &mut Vec<LED>,
         micros: u64,
-        brightness_mod: f32,
+        intensity_mod: f32,
     );
 
     fn new(leds: &[LED]) -> Self where Self: Sized;
