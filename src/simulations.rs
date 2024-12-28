@@ -6,7 +6,7 @@ mod always_on_sim;
 mod flash_every_second;
 mod rainbow_flood;
 
-pub fn get_simulations(leds: &Vec<LED>) -> Vec<Box<dyn Simulation>> {
+pub fn get_simulations(leds: &[LED]) -> Vec<Box<dyn Simulation>> {
     vec![
         // Box::new(always_on_sim::AlwaysOnSim::new(leds)), // only used for testing, not useful in prod
         Box::new(flash_every_second::FlashEverySecondSim::new(leds)),

@@ -7,7 +7,7 @@ pub struct FlashEverySecondSim {
 }
 
 impl Simulation for FlashEverySecondSim {
-    fn new(leds: &Vec<LED>) -> Self {
+    fn new(_leds: &[LED]) -> Self {
         Self { last_flash: 0, on_now: false }
     }
 

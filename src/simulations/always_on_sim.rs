@@ -7,7 +7,7 @@ impl Simulation for AlwaysOnSim {
     fn tick(
         &mut self,
         leds: &mut Vec<LED>,
-        micros: u64,
+        _micros: u64,
         brightness_mod: f32,
     ){
         let brightness = (255.0 * brightness_mod) as u8;
@@ -16,7 +16,7 @@ impl Simulation for AlwaysOnSim {
         }
     }
 
-    fn new(leds: &Vec<LED>,) -> Self {
+    fn new(_leds: &[LED],) -> Self {
         Self
     }
 

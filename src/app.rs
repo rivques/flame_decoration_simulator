@@ -6,14 +6,13 @@ use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout},
-    style::{Color, Style, Stylize},
-    symbols::block,
+    style::{Color, Style},
     text::{Line, Text},
-    widgets::{block::title, canvas::{Canvas, Circle, Painter, Shape}, Block, Borders, Paragraph},
+    widgets::{canvas::{Canvas, Painter, Shape}, Block, Borders, Paragraph},
     DefaultTerminal, Frame,
 };
 
-use crate::{simulations, types::{Simulation, LED}};
+use crate::types::{Simulation, LED};
 
 #[derive(Debug)]
 enum AppPage {
@@ -147,10 +146,10 @@ impl App {
                 simulation.tick(&mut self.current_leds, (Instant::now() - start_time).as_micros().try_into().unwrap(), self.current_brightness_mod);
 
                 // get bounding box of LEDs
-                let mut min_x = std::i32::MAX;
-                let mut max_x = std::i32::MIN;
-                let mut min_y = std::i32::MAX;
-                let mut max_y = std::i32::MIN;
+                let mut min_x = i32::MAX;
+                let mut max_x = i32::MIN;
+                let mut min_y = i32::MAX;
+                let mut max_y = i32::MIN;
                 for led in self.current_leds.iter() {
                     min_x = min_x.min(led.coords.0 as i32);
                     max_x = max_x.max(led.coords.0 as i32);
@@ -163,8 +162,6 @@ impl App {
                 min_y -= 3;
                 max_y += 3;
 
-                let center_x = (min_x + max_x) / 2;
-                let center_y = (min_y + max_y) / 2;
                 let width = max_x - min_x;
                 let height = max_y - min_y;
                 let ideal_aspect_ratio = width as f64 / height as f64;
@@ -277,6 +274,7 @@ impl App {
                     }
                 }
             },
+            #[allow(clippy::single_match, reason = "the simulation page may care about Enter in the future")]
             (_, KeyCode::Enter) => match self.page {
                 AppPage::Menu(simnum) => {
                     self.page = AppPage::Simulation(simnum, Instant::now());

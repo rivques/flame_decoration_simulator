@@ -36,7 +36,7 @@ impl RainbowFloodSim {
 }
 
 impl Simulation for RainbowFloodSim {
-    fn new(leds: &Vec<LED>) -> Self where Self: Sized { // the constructor for the simulation.
+    fn new(leds: &[LED]) -> Self where Self: Sized { // the constructor for the simulation.
         // calculate the height of the pattern only once
         let pattern_height = leds.iter().map(|led| led.coords.1).max().unwrap() as f32 - leds.iter().map(|led| led.coords.1).min().unwrap() as f32;
         Self { last_tick: 0, hue: 0.0, pattern_height }

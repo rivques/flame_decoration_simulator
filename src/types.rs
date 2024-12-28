@@ -21,7 +21,7 @@ pub trait Simulation: Debug {
         brightness_mod: f32,
     );
 
-    fn new(leds: &Vec<LED>) -> Self where Self: Sized;
+    fn new(leds: &[LED]) -> Self where Self: Sized;
 
     fn get_name(&self) -> &'static str;
 }
