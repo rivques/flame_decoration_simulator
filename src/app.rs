@@ -16,6 +16,7 @@ use crate::types::{Simulation, LED};
 
 #[derive(Debug)]
 enum AppPage {
+    Intro,
     Menu(usize),
     Simulation(usize, Instant),
 }
@@ -39,7 +40,7 @@ impl App {
     #[must_use] pub fn new(simulations: Vec<Box<dyn Simulation>>, leds: Vec<LED>,) -> Self {
         Self {
             running: false,
-            page: AppPage::Menu(0),
+            page: AppPage::Intro,
             simulations,
             current_leds: leds,
             current_intensity_mod: 1.0,
@@ -91,6 +92,24 @@ impl App {
         frame.render_widget(title, chunks[0]);
 
         match self.page {
+            AppPage::Intro => {
+                // TODO: break this intro into a constant string and also print it if `app --help` is run
+                let intro = Paragraph::new(Text::styled(
+                    "Welcome to the Fire Decoration Simulator!",
+                    Style::new().fg(Color::Green),
+                ))
+                .alignment(Alignment::Center);
+                frame.render_widget(intro, chunks[1]);
+
+                let instructions = Paragraph::new(
+                    Text::styled(
+                        "Press Enter to continue",
+                        Style::new().fg(Color::Yellow),
+                    )
+                )
+                .alignment(Alignment::Center);
+                frame.render_widget(instructions, chunks[2]);
+            }
             AppPage::Menu(simnum) => {
                 let menu = Paragraph::new(Text::styled(
                     "Choose a simulation technique:",
@@ -246,6 +265,7 @@ impl App {
             (_, KeyCode::Esc | KeyCode::Char('q')) => match self.page {
                 AppPage::Menu(_) => self.quit(),
                 AppPage::Simulation(..) => self.page = AppPage::Menu(0),
+                AppPage::Intro => self.quit(),
             },
             (KeyModifiers::CONTROL, KeyCode::Char('c' | 'C')) => self.quit(),
             (_, KeyCode::Up) => match self.page {
@@ -260,6 +280,7 @@ impl App {
                         self.current_intensity_mod = 1.0;
                     }
                 }
+                AppPage::Intro => {}
             },
             (_, KeyCode::Down) => match self.page {
                 AppPage::Menu(ref mut simnum) => {
@@ -273,13 +294,17 @@ impl App {
                         self.current_intensity_mod = 0.0;
                     }
                 }
+                AppPage::Intro => {}
             },
             #[allow(clippy::single_match, reason = "the simulation page may care about Enter in the future")]
             (_, KeyCode::Enter) => match self.page {
                 AppPage::Menu(simnum) => {
                     self.page = AppPage::Simulation(simnum, Instant::now());
                 }
-                _ => {}
+                AppPage::Intro => {
+                    self.page = AppPage::Menu(0);
+                }
+                AppPage::Simulation(..) => {}
             },
             _ => {}
         }
