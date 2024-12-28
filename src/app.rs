@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
 /// This is a simulator for my fire decoration PCB. It has a menu to choose a simulation technique and a simulation page to run the simulation.
-/// The simulation page includes accurately laid out pixels simulation the NeoPixels.
+/// The simulation page includes accurately laid out pixels simulation the `NeoPixels`.
 use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
@@ -36,7 +36,7 @@ pub struct App {
 
 impl App {
     /// Construct a new instance of [`App`].
-    pub fn new(simulations: Vec<Box<dyn Simulation>>, leds: Vec<LED>,) -> Self {
+    #[must_use] pub fn new(simulations: Vec<Box<dyn Simulation>>, leds: Vec<LED>,) -> Self {
         Self {
             running: false,
             page: AppPage::Menu(0),
@@ -143,14 +143,14 @@ impl App {
                 let simulation = &mut self.simulations[simnum];
                 
                 // tick the simulation
-                simulation.tick(&mut self.current_leds, (Instant::now() - start_time).as_micros().try_into().unwrap(), self.current_brightness_mod);
+                simulation.tick(&mut self.current_leds, start_time.elapsed().as_micros().try_into().unwrap(), self.current_brightness_mod);
 
                 // get bounding box of LEDs
                 let mut min_x = i32::MAX;
                 let mut max_x = i32::MIN;
                 let mut min_y = i32::MAX;
                 let mut max_y = i32::MIN;
-                for led in self.current_leds.iter() {
+                for led in &self.current_leds {
                     min_x = min_x.min(led.coords.0 as i32);
                     max_x = max_x.max(led.coords.0 as i32);
                     min_y = min_y.min(led.coords.1 as i32);
@@ -164,20 +164,20 @@ impl App {
 
                 let width = max_x - min_x;
                 let height = max_y - min_y;
-                let ideal_aspect_ratio = width as f64 / height as f64;
+                let ideal_aspect_ratio = f64::from(width) / f64::from(height);
 
                 // now, the canvas has a fixed aspect ratio, so we need to adjust the aspect ratio of the bounding box by adding padding
                 // the canvas's size is (simulation_layout[0].width, simulation_layout[0].height * 2) because we have twice as much vertical resolution as horizontal
-                let canvas_aspect_ratio = simulation_layout[0].width as f64 / (simulation_layout[0].height * 2) as f64;
+                let canvas_aspect_ratio = f64::from(simulation_layout[0].width) / f64::from(simulation_layout[0].height * 2);
                 if canvas_aspect_ratio > ideal_aspect_ratio {
                     // canvas is wider than the bounding box, so we need to add padding to the left 
-                    let new_width = (height as f64 * canvas_aspect_ratio) as i32;
+                    let new_width = (f64::from(height) * canvas_aspect_ratio) as i32;
                     let padding = (new_width - width) / 2;
                     min_x -= padding;
                     max_x += padding;
                 } else {
                     // canvas is taller than the bounding box, so we need to add padding to the top
-                    let new_height = (width as f64 / canvas_aspect_ratio) as i32;
+                    let new_height = (f64::from(width) / canvas_aspect_ratio) as i32;
                     let padding = (new_height - height) / 2;
                     min_y -= padding;
                     max_y += padding;
@@ -202,8 +202,8 @@ impl App {
                             |circle| ctx.draw(&circle)
                         );
                     })
-                    .x_bounds([min_x as f64, max_x as f64])
-                    .y_bounds([min_y as f64, max_y as f64]);
+                    .x_bounds([f64::from(min_x), f64::from(max_x)])
+                    .y_bounds([f64::from(min_y), f64::from(max_y)]);
                 frame.render_widget(canvas, simulation_layout[0]);
                 // current brightness
                 let brightness = Paragraph::new(
@@ -247,7 +247,7 @@ impl App {
                 AppPage::Menu(_) => self.quit(),
                 AppPage::Simulation(..) => self.page = AppPage::Menu(0),
             },
-            (KeyModifiers::CONTROL, KeyCode::Char('c') | KeyCode::Char('C')) => self.quit(),
+            (KeyModifiers::CONTROL, KeyCode::Char('c' | 'C')) => self.quit(),
             (_, KeyCode::Up) => match self.page {
                 AppPage::Menu(ref mut simnum) => {
                     if *simnum > 0 {
@@ -311,8 +311,8 @@ impl Shape for FilledCircle {
         for angle in 0..360 {
             for dist in 0..=(self.radius * RAD_MULT) as i32 {
                 let radians = f64::from(angle).to_radians();
-                let circle_x = ((dist as f64)/RAD_MULT).mul_add(radians.cos(), self.x);
-                let circle_y = ((dist as f64)/RAD_MULT).mul_add(radians.sin(), self.y);
+                let circle_x = (f64::from(dist)/RAD_MULT).mul_add(radians.cos(), self.x);
+                let circle_y = (f64::from(dist)/RAD_MULT).mul_add(radians.sin(), self.y);
                 if let Some((x, y)) = painter.get_point(circle_x, circle_y) {
                     painter.paint(x, y, self.color);
                 }

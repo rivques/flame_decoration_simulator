@@ -27,13 +27,13 @@ impl Simulation for FlashEverySecondSim {
             self.on_now = !self.on_now;
             self.last_flash = micros;
 
-            leds.iter_mut().for_each(|led| {
+            for led in leds.iter_mut() {
                 led.color = if self.on_now {
                     RGB { r: brightness, g: brightness, b: brightness }
                 } else {
                     RGB { r: 0, g: 0, b: 0 }
                 };
-            });
+            }
         }
     }
 
